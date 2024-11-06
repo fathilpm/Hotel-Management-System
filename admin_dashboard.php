@@ -36,6 +36,22 @@ if (isset($_POST['cancel_booking'])) {
         echo "<script>alert('Error cancelling booking.');</script>";
     }
 }
+
+// Handle user deletion
+if (isset($_POST['delete_user'])) {
+    $userId = $_POST['user_id'];
+
+    // Prepare and execute the deletion query
+    $deleteStmt = $pdo->prepare("DELETE FROM Users WHERE user_id = ?");
+    if ($deleteStmt->execute([$userId])) {
+        echo "<script>alert('User deleted successfully.');</script>";
+        // Refresh the users list by redirecting
+        header("Location: admin_dashboard.php");
+        exit();
+    } else {
+        echo "<script>alert('Error deleting user.');</script>";
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -120,6 +136,7 @@ if (isset($_POST['cancel_booking'])) {
                     <th>Name</th>
                     <th>Email</th>
                     <th>Role</th>
+                    <th>Action</th> <!-- Action column for Delete -->
                 </tr>
             </thead>
             <tbody>
@@ -129,6 +146,15 @@ if (isset($_POST['cancel_booking'])) {
                         <td><?= htmlspecialchars($user['name']) ?></td>
                         <td><?= htmlspecialchars($user['email']) ?></td>
                         <td><?= htmlspecialchars($user['role']) ?></td>
+                        <td>
+                            <?php if ($user['role'] !== 'admin'): ?> <!-- Hide Delete button for admin role -->
+                                <!-- Delete button with form (visible only for non-admin users) -->
+                                <form method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this user?');">
+                                    <input type="hidden" name="user_id" value="<?= htmlspecialchars($user['user_id']) ?>">
+                                    <button type="submit" name="delete_user" class="cancel-button">Delete</button>
+                                </form>
+                            <?php endif; ?>
+                        </td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>
